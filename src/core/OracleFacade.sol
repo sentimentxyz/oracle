@@ -10,7 +10,7 @@ contract OracleFacade is Ownable, IOracle {
 
     constructor() Ownable(msg.sender) {}
 
-    event UpdateFeed(address indexed tokenAddr, address indexed feedAddr);
+    event UpdateOracle(address indexed token, address indexed feed);
 
     /// @dev Assume that the response has 18 decimals
     function getPrice(address token) external view returns (uint) {
@@ -19,8 +19,8 @@ contract OracleFacade is Ownable, IOracle {
     }
 
      // AdminOnly
-    function setFeed(address token, IOracle _oracle) external adminOnly {
+    function setOracle(address token, IOracle _oracle) external adminOnly {
         oracle[token] = _oracle;
-        emit UpdateFeed(token, address(_oracle));
+        emit UpdateOracle(token, address(_oracle));
     }
 }
