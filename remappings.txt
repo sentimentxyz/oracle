@@ -1,2 +1,0 @@
-ds-test/=lib/ds-test/src/
-prb-math/=lib/prb-math/contracts/
