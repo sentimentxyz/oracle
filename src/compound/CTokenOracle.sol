@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import {ICToken} from "./ICToken.sol";
 import {IERC20} from "../utils/IERC20.sol";
 import {IOracle} from "../core/IOracle.sol";
-import {PRBMathUD60x18} from "@prb-math/contracts/PRBMathUD60x18.sol";
+import {PRBMathUD60x18} from "prb-math/PRBMathUD60x18.sol";
 
 contract CTokenOracle is IOracle {
     using PRBMathUD60x18 for uint;
