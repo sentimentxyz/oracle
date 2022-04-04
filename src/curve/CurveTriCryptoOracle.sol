@@ -40,7 +40,7 @@ contract CurveTriCryptoOracle is IOracle {
         discount = cubicRoot(discount) * DISCOUNT0 / 1e18;
         
         maxPrice -= maxPrice * discount / 10**18;
-        return maxPrice;
+        return (maxPrice * 10 ** 18/p2);
     }
 
     function cubicRoot(uint256 x) internal pure returns (uint256) {
