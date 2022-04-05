@@ -28,35 +28,35 @@ contract CurveTriCryptoOracle is IOracle {
         uint256 p1 = ICurvePool(pool).price_oracle(0);
         uint256 p2 = ICurvePool(pool).price_oracle(1);
 
-        uint256 maxPrice = 3 * vp * cubicRoot(p1 * p2) / 10**18;
+        uint256 maxPrice = 3 * vp * cubicRoot(p1 * p2) / 1e18;
 
-        uint256 g = ICurvePool(pool).gamma() * 10**18 / GAMMA0;
-        uint256 a = ICurvePool(pool).A() * 10**18 / A0;
+        uint256 g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
+        uint256 a = ICurvePool(pool).A() * 1e18 / A0;
 
-        uint256 i = g**2 / 10**18 * a;
-        uint256 j = 10**34;
+        uint256 i = g**2 / 1e18 * a;
+        uint256 j = 1e34;
         uint256 discount = i >= j ? i : j;
         
         discount = cubicRoot(discount) * DISCOUNT0 / 1e18;
         
-        maxPrice -= maxPrice * discount / 10**18;
-        return (maxPrice * 10 ** 18/p2);
+        maxPrice -= maxPrice * discount / 1e18;
+        return (maxPrice * 1e18/p2);
     }
 
     function cubicRoot(uint256 x) internal pure returns (uint256) {
-        uint256 D = x / 10**18;
+        uint256 D = x / 1e18;
         
         for (uint i=0; i < 255; i++) {    
             uint256 diff = 0;
             uint256 D_prev = D;
             
             D = D * 
-                (2 * 10**18 + x / D * 10**18 / D * 10**18 / D) / 
-                (3 * 10**18);
+                (2 * 1e18 + x / D * 1e18 / D * 1e18 / D) / 
+                (3 * 1e18);
 
             if (D > D_prev) diff = D - D_prev;
             else diff = D_prev - D;
-            if (diff <= 1 || diff * 10 ** 18 < D) return D;
+            if (diff <= 1 || diff * 1e18 < D) return D;
         }
         revert("Did Not Converge");
     }
