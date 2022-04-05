@@ -20,6 +20,8 @@ contract UniV2LPOracle is IOracle {
         uint p1 = oracle.getPrice(IUniswapV2Pair(pair).token1());
         uint totalSupply = IUniswapV2Pair(pair).totalSupply();
         (uint r0, uint r1,) = IUniswapV2Pair(pair).getReserves();
-        return r0.mul(r1).sqrt().div(totalSupply).mul(p0.mul(p1).sqrt()).mul(2e18);
+        
+        // 2 * sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
+        return r0.gm(r1).div(totalSupply).mul(p0.gm(p1)).mul(2e18);
     }
 }
