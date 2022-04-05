@@ -4,59 +4,49 @@ pragma solidity ^0.8.11;
 import {IOracle} from "../core/IOracle.sol";
 
 interface ICurvePool {
-    function price_oracle(uint256) external view returns (uint256);
-    function virtual_price() external view returns (uint256);
     function A() external view returns (uint256);
     function gamma() external view returns (uint256);
+    function virtual_price() external view returns (uint256);
+    function price_oracle(uint256) external view returns (uint256);
 }
 
-// Implements https://twitter.com/curvefinance/status/1441538795493478415 in solidity
+// eth:0xE8b2989276E2Ca8FDEA2268E3551b2b4B2418950
+// https://twitter.com/curvefinance/status/1441538795493478415
 
 contract CurveTriCryptoOracle is IOracle {
-    address pool;
-
-    uint256 constant GAMMA0 = 28000000000000;
-    uint256 constant A0 = 2 * 3**3 * 10000;
-    uint256 constant DISCOUNT0 = 1087460000000000;
+    address immutable pool;
+    uint constant GAMMA0 = 28000000000000;
+    uint constant A0 = 2 * 3**3 * 10000;
+    uint constant DISCOUNT0 = 1087460000000000;
 
     constructor(address _pool) {
         pool = _pool;
     }
 
     function getPrice(address) external view returns (uint) {
-        uint256 vp = ICurvePool(pool).virtual_price();
-        uint256 p1 = ICurvePool(pool).price_oracle(0);
-        uint256 p2 = ICurvePool(pool).price_oracle(1);
-
-        uint256 maxPrice = 3 * vp * cubicRoot(p1 * p2) / 1e18;
-
-        uint256 g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
-        uint256 a = ICurvePool(pool).A() * 1e18 / A0;
-
-        uint256 i = g**2 / 1e18 * a;
-        uint256 j = 1e34;
-        uint256 discount = i >= j ? i : j;
+        uint g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
+        uint a = ICurvePool(pool).A() * 1e18 / A0;
+        uint i = g ** 2 / 1e18 * a;
+        i = (i >= 1e34) ? cubicRoot(i) * DISCOUNT0 / 1e18 
+            : cubicRoot(1e34) * DISCOUNT0 / 1e18;
         
-        discount = cubicRoot(discount) * DISCOUNT0 / 1e18;
+        uint vp = ICurvePool(pool).virtual_price();
+        uint p1 = ICurvePool(pool).price_oracle(0); // WBTC price
+        uint p2 = ICurvePool(pool).price_oracle(1); // WETH price
+        uint maxPrice = 3 * vp * cubicRoot(p1 * p2) / 1e18;
+        maxPrice -= maxPrice * i / 1e18;
         
-        maxPrice -= maxPrice * discount / 1e18;
-        return (maxPrice * 1e18/p2);
+        return (maxPrice * 1e18 / p2);
     }
 
-    function cubicRoot(uint256 x) internal pure returns (uint256) {
-        uint256 D = x / 1e18;
-        
-        for (uint i=0; i < 255; i++) {    
-            uint256 diff = 0;
-            uint256 D_prev = D;
-            
-            D = D * 
-                (2 * 1e18 + x / D * 1e18 / D * 1e18 / D) / 
-                (3 * 1e18);
-
-            if (D > D_prev) diff = D - D_prev;
-            else diff = D_prev - D;
-            if (diff <= 1 || diff * 1e18 < D) return D;
+    function cubicRoot(uint x) internal pure returns (uint) {
+        uint D = x / 1e18;
+        for (uint i; i < 255;) {
+            uint D_prev = D;
+            D = D * (2e18 + x / D * 1e18 / D * 1e18 / D) / (3e18);
+            uint diff = (D > D_prev) ? D - D_prev : D_prev - D;
+            if (diff < 2 || diff * 1e18 < D) return D;
+            unchecked { ++i; }
         }
         revert("Did Not Converge");
     }
