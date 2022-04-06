@@ -16,12 +16,15 @@ contract UniV2LpOracle is IOracle {
 
     // Adapted from https://blog.alphaventuredao.io/fair-lp-token-pricing
     function getPrice(address pair) external view returns (uint) {
-        uint totalSupply = IUniswapV2Pair(pair).totalSupply();
-        uint p0 = oracle.getPrice(IUniswapV2Pair(pair).token0());
-        uint p1 = oracle.getPrice(IUniswapV2Pair(pair).token1());
         (uint r0, uint r1,) = IUniswapV2Pair(pair).getReserves();
         
         // 2 * sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
-        return r0.gm(r1).div(totalSupply).mul(p0.gm(p1)).mul(2e18);
+        return r0
+            .gm(r1)
+            .div(IUniswapV2Pair(pair).totalSupply())
+            .mul(
+                oracle.getPrice(IUniswapV2Pair(pair).token0())
+                .gm(oracle.getPrice(IUniswapV2Pair(pair).token1()))
+            ).mul(2e18);
     }
 }
