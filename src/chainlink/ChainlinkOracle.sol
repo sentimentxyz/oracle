@@ -7,20 +7,20 @@ import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 
 contract ChainlinkOracle is Ownable, IOracle {
     
-    AggregatorV3Interface immutable ethPriceFeed;
+    AggregatorV3Interface immutable ethUsdPriceFeed;
 
     mapping(address => AggregatorV3Interface) public feed;
 
     event UpdateFeed(address indexed token, address indexed feed);
 
-    constructor(AggregatorV3Interface _ethPriceFeed) Ownable(msg.sender) {
-        ethPriceFeed = _ethPriceFeed;
+    constructor(AggregatorV3Interface _ethUsdPriceFeed) Ownable(msg.sender) {
+        ethUsdPriceFeed = _ethUsdPriceFeed;
     }
 
     function getPrice(address token) external view override returns (uint) {
         return (
-            uint(feed[token].latestAnswer())*1e10/
-            uint(ethPriceFeed.latestAnswer())*1e10
+            (uint(feed[token].latestAnswer())*1e18)/
+            uint(ethUsdPriceFeed.latestAnswer())
         );
     }
 
