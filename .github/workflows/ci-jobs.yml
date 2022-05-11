@@ -1,6 +1,6 @@
 name: Compile and Test
 
-on: 
+on:
   push:
     branches: [ main ]
   pull_request:
@@ -19,6 +19,3 @@ jobs:
         uses: onbjerg/foundry-toolchain@v1.0.5
         with:
           version: nightly
-
-      - name: Run tests
-        run: forge test
