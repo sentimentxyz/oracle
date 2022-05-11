@@ -19,7 +19,7 @@ contract YTokenOracle is IOracle {
     function getPrice(address token) external view returns (uint price) {
         address underlying_token = IYVault(token).token();
         price = IYVault(token).pricePerShare() *
-            oracle.getPrice(underlying_token) / 
+            oracle.getPrice(underlying_token) /
             10 ** IYVault(underlying_token).decimals();
     }
 }

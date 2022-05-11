@@ -11,20 +11,20 @@ contract CTokenOracle is IOracle {
 
     IOracle public immutable oracle;
     address public immutable cETHER;
-    
+
     constructor(IOracle _oracle, address _cETHER) {
         oracle = _oracle;
         cETHER = _cETHER;
     }
 
     function getPrice(address token) external view returns (uint) {
-        return (token == cETHER) ? 
-            getCEtherPrice() : 
+        return (token == cETHER) ?
+            getCEtherPrice() :
             getCErc20Price(ICToken(token), ICToken(token).underlying());
     }
 
     function getCEtherPrice() internal view returns (uint) {
-        /* 
+        /*
             cToken Exchange rates are scaled by 10^(18 - 8 + underlying token decimals) which comes
             out to 28 decimals for cEther. We must divide the exchange rate by 1e10 to scale it to
             18 decimals. Finally we multiply this with the price of the underlying token, in this

@@ -27,15 +27,15 @@ contract CurveTriCryptoOracle is IOracle {
         uint g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
         uint a = ICurvePool(pool).A() * 1e18 / A0;
         uint i = g ** 2 / 1e18 * a;
-        i = (i >= 1e34) ? cubicRoot(i) * DISCOUNT0 / 1e18 
+        i = (i >= 1e34) ? cubicRoot(i) * DISCOUNT0 / 1e18
             : cubicRoot(1e34) * DISCOUNT0 / 1e18;
-        
+
         uint vp = ICurvePool(pool).virtual_price();
         uint p1 = ICurvePool(pool).price_oracle(0); // WBTC price
         uint p2 = ICurvePool(pool).price_oracle(1); // WETH price
         uint maxPrice = 3 * vp * cubicRoot(p1 * p2) / 1e18;
         maxPrice -= maxPrice * i / 1e18;
-        
+
         return (maxPrice * 1e18 / p2);
     }
 

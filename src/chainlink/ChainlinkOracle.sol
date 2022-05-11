@@ -6,7 +6,7 @@ import {Ownable} from "../utils/Ownable.sol";
 import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 
 contract ChainlinkOracle is Ownable, IOracle {
-    
+
     AggregatorV3Interface immutable ethUsdPriceFeed;
 
     mapping(address => AggregatorV3Interface) public feed;
