@@ -18,9 +18,11 @@ contract ChainlinkOracle is Ownable, IOracle {
     }
 
     function getPrice(address token) external view override returns (uint) {
+        (, int tokenUSDPrice,,,) = feed[token].latestRoundData();
+        (, int ethUSDPrice,,,) = ethUsdPriceFeed.latestRoundData();
         return (
-            (uint(feed[token].latestAnswer())*1e18)/
-            uint(ethUsdPriceFeed.latestAnswer())
+            (uint(tokenUSDPrice)*1e18)/
+            uint(ethUSDPrice)
         );
     }
 
