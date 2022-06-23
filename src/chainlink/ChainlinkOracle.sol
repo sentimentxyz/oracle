@@ -50,7 +50,7 @@ contract ChainlinkOracle is Ownable, IOracle {
     function getPrice(address token) external view override returns (uint) {
         (, int tokenUSDPrice,, uint256 tokenUpdatedAt,) =
             feed[token].latestRoundData();
-        (, int ethUSDPrice,,uint256 ethUpdatedAt,) =
+        (, int ethUSDPrice,, uint256 ethUpdatedAt,) =
             ethUsdPriceFeed.latestRoundData();
 
         if (block.timestamp - tokenUpdatedAt > heartBeat)
@@ -58,6 +58,12 @@ contract ChainlinkOracle is Ownable, IOracle {
 
         if (block.timestamp - ethUpdatedAt > heartBeat)
                 revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
+
+        if (tokenUSDPrice < 0)
+            revert Errors.NegativePrice(token, address(feed[token]));
+
+        if (ethUSDPrice < 0)
+            revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
 
         return (
             (uint(tokenUSDPrice)*1e18)/

@@ -6,4 +6,5 @@ interface Errors {
     error ZeroAddress();
     error PriceUnavailable();
     error InactivePriceFeed(address feed);
+    error NegativePrice(address token, address feed);
 }
