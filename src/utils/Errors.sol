@@ -5,4 +5,5 @@ interface Errors {
     error AdminOnly();
     error ZeroAddress();
     error PriceUnavailable();
+    error InactivePriceFeed(address feed);
 }

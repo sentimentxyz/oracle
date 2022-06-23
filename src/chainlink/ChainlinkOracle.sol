@@ -3,6 +3,7 @@ pragma solidity ^0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
 import {Ownable} from "../utils/Ownable.sol";
+import {Errors} from "../utils/Errors.sol";
 import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 
 /**
@@ -17,6 +18,8 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @notice ETH USD Chainlink price feed
     AggregatorV3Interface immutable ethUsdPriceFeed;
+
+    uint constant heartBeat = 86400;
 
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
@@ -45,8 +48,17 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external view override returns (uint) {
-        (, int tokenUSDPrice,,,) = feed[token].latestRoundData();
-        (, int ethUSDPrice,,,) = ethUsdPriceFeed.latestRoundData();
+        (, int tokenUSDPrice,, uint256 tokenUpdatedAt,) =
+            feed[token].latestRoundData();
+        (, int ethUSDPrice,,uint256 ethUpdatedAt,) =
+            ethUsdPriceFeed.latestRoundData();
+
+        if (block.timestamp - tokenUpdatedAt > heartBeat)
+                revert Errors.InactivePriceFeed(address(feed[token]));
+
+        if (block.timestamp - ethUpdatedAt > heartBeat)
+                revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
+
         return (
             (uint(tokenUSDPrice)*1e18)/
             uint(ethUSDPrice)
