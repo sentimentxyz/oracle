@@ -2,8 +2,14 @@
 pragma solidity ^0.8.10;
 
 interface AggregatorV3Interface {
-    function latestAnswer()
+    function latestRoundData()
     external
     view
-    returns (int256);
+    returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    );
 }
