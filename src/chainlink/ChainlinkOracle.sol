@@ -23,12 +23,13 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
+    mapping(address => uint) public heartBeatOf;
 
     /* -------------------------------------------------------------------------- */
     /*                                   EVENTS                                   */
     /* -------------------------------------------------------------------------- */
 
-    event UpdateFeed(address indexed token, address indexed feed);
+    event UpdateFeed(address indexed token, address indexed feed, uint256 heartBeat);
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -48,26 +49,17 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external view override returns (uint) {
-        (, int tokenUSDPrice,, uint256 tokenUpdatedAt,) =
+        (, int answer,, uint256 tokenUpdatedAt,) =
             feed[token].latestRoundData();
-        (, int ethUSDPrice,, uint256 ethUpdatedAt,) =
-            ethUsdPriceFeed.latestRoundData();
 
-        if (block.timestamp - tokenUpdatedAt > heartBeat)
-                revert Errors.InactivePriceFeed(address(feed[token]));
+        if (block.timestamp - tokenUpdatedAt > heartBeatOf[token])
+            revert Errors.InactivePriceFeed(address(feed[token]));
 
-        if (block.timestamp - ethUpdatedAt > heartBeat)
-                revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
-
-        if (tokenUSDPrice < 0)
+        if (answer < 0)
             revert Errors.NegativePrice(token, address(feed[token]));
 
-        if (ethUSDPrice < 0)
-            revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
-
         return (
-            (uint(tokenUSDPrice)*1e18)/
-            uint(ethUSDPrice)
+            (uint(answer)*1e18)/getEthPrice()
         );
     }
 
@@ -75,11 +67,27 @@ contract ChainlinkOracle is Ownable, IOracle {
     /*                               ADMIN FUNCTIONS                              */
     /* -------------------------------------------------------------------------- */
 
+    function getEthPrice() private view returns (uint) {
+        (, int answer,, uint256 updatedAt,) =
+            ethUsdPriceFeed.latestRoundData();
+
+        if (block.timestamp - updatedAt > heartBeatOf[address(0)])
+            revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
+
+        if (answer < 0)
+            revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
+
+        return uint(answer);
+    }
+
+    // AdminOnly
     function setFeed(
         address token,
-        AggregatorV3Interface _feed
+        AggregatorV3Interface _feed,
+        uint256 heartBeat
     ) external adminOnly {
         feed[token] = _feed;
-        emit UpdateFeed(token, address(_feed));
+        heartBeatOf[token] = heartBeat;
+        emit UpdateFeed(token, address(_feed), heartBeat);
     }
 }
