@@ -18,6 +18,7 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @notice ETH USD Chainlink price feed
     AggregatorV3Interface immutable ethUsdPriceFeed;
+    AggregatorV3Interface immutable sequencer;
 
     uint constant heartBeat = 86400;
 
@@ -38,9 +39,16 @@ contract ChainlinkOracle is Ownable, IOracle {
     /**
         @notice Contract constructor
         @param _ethUsdPriceFeed ETH USD Chainlink price feed
+        @param _sequencer L2 sequencer
     */
-    constructor(AggregatorV3Interface _ethUsdPriceFeed) Ownable(msg.sender) {
+    constructor(
+        AggregatorV3Interface _ethUsdPriceFeed,
+        AggregatorV3Interface _sequencer
+    )
+        Ownable(msg.sender)
+    {
         ethUsdPriceFeed = _ethUsdPriceFeed;
+        sequencer = _sequencer;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -49,10 +57,12 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external view override returns (uint) {
+        if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
+
         (, int answer,, uint256 tokenUpdatedAt,) =
             feed[token].latestRoundData();
 
-        if (block.timestamp - tokenUpdatedAt > heartBeatOf[token])
+        if (block.timestamp - tokenUpdatedAt >= heartBeatOf[token])
             revert Errors.InactivePriceFeed(address(feed[token]));
 
         if (answer < 0)
@@ -71,13 +81,18 @@ contract ChainlinkOracle is Ownable, IOracle {
         (, int answer,, uint256 updatedAt,) =
             ethUsdPriceFeed.latestRoundData();
 
-        if (block.timestamp - updatedAt > heartBeatOf[address(0)])
+        if (block.timestamp - updatedAt >= heartBeatOf[address(0)])
             revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
 
         if (answer < 0)
             revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
 
         return uint(answer);
+    }
+
+    function isSequencerActive() private view returns (bool) {
+        (, int256 answer,, uint256 updatedAt,) = sequencer.latestRoundData();
+        return (answer == 0 && (block.timestamp - updatedAt) < 3600);
     }
 
     // AdminOnly
