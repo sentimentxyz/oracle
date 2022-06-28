@@ -1,27 +1,56 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.15;
 
 import {ICToken} from "./ICToken.sol";
 import {IERC20} from "../utils/IERC20.sol";
 import {IOracle} from "../core/IOracle.sol";
 import {PRBMathUD60x18} from "prb-math/PRBMathUD60x18.sol";
 
+/**
+    @title Compound cToken oracle
+    @notice Price oracle for cToken
+*/
 contract CTokenOracle is IOracle {
     using PRBMathUD60x18 for uint;
 
+    /* -------------------------------------------------------------------------- */
+    /*                               STATE VARIABLES                              */
+    /* -------------------------------------------------------------------------- */
+
+    /// @notice Oracle Facade
     IOracle public immutable oracle;
+
+    /// @notice cEther
     address public immutable cETHER;
 
+    /* -------------------------------------------------------------------------- */
+    /*                                 CONSTRUCTOR                                */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+        @notice Contract constructor
+        @param _oracle Oracle Facade
+        @param _cETHER cEther
+    */
     constructor(IOracle _oracle, address _cETHER) {
         oracle = _oracle;
         cETHER = _cETHER;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                              PUBLIC FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
+
+    /// @inheritdoc IOracle
     function getPrice(address token) external view returns (uint) {
         return (token == cETHER) ?
             getCEtherPrice() :
             getCErc20Price(ICToken(token), ICToken(token).underlying());
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                             INTERNAL FUNCTIONS                             */
+    /* -------------------------------------------------------------------------- */
 
     function getCEtherPrice() internal view returns (uint) {
         /*
@@ -38,7 +67,7 @@ contract CTokenOracle is IOracle {
     function getCErc20Price(ICToken cToken, address underlying) internal view returns (uint) {
         /*
             cToken Exchange rates are scaled by 10^(18 - 8 + underlying token decimals) so to scale
-            the exchange rate to 18 decimals we must multiply it by 1e8 and then divide it by the 
+            the exchange rate to 18 decimals we must multiply it by 1e8 and then divide it by the
             number of decimals in the underlying token. Finally to find the price of the cToken we
             must multiply this value with the current price of the underlying token
         */
