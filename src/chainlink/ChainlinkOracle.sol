@@ -18,19 +18,18 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @notice ETH USD Chainlink price feed
     AggregatorV3Interface immutable ethUsdPriceFeed;
-    AggregatorV3Interface immutable sequencer;
 
-    uint constant heartBeat = 86400;
+    /// @notice L2 Sequencer feed
+    AggregatorV3Interface immutable sequencer;
 
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
-    mapping(address => uint) public heartBeatOf;
 
     /* -------------------------------------------------------------------------- */
     /*                                   EVENTS                                   */
     /* -------------------------------------------------------------------------- */
 
-    event UpdateFeed(address indexed token, address indexed feed, uint256 heartBeat);
+    event UpdateFeed(address indexed token, address indexed feed);
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -59,11 +58,8 @@ contract ChainlinkOracle is Ownable, IOracle {
     function getPrice(address token) external view override returns (uint) {
         if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
 
-        (, int answer,, uint256 tokenUpdatedAt,) =
+        (, int answer,,,) =
             feed[token].latestRoundData();
-
-        if (block.timestamp - tokenUpdatedAt >= heartBeatOf[token])
-            revert Errors.InactivePriceFeed(address(feed[token]));
 
         if (answer < 0)
             revert Errors.NegativePrice(token, address(feed[token]));
@@ -74,15 +70,12 @@ contract ChainlinkOracle is Ownable, IOracle {
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                               ADMIN FUNCTIONS                              */
+    /*                             INTERNAL FUNCTIONS                             */
     /* -------------------------------------------------------------------------- */
 
-    function getEthPrice() private view returns (uint) {
-        (, int answer,, uint256 updatedAt,) =
+    function getEthPrice() internal view returns (uint) {
+        (, int answer,,,) =
             ethUsdPriceFeed.latestRoundData();
-
-        if (block.timestamp - updatedAt >= heartBeatOf[address(0)])
-            revert Errors.InactivePriceFeed(address(ethUsdPriceFeed));
 
         if (answer < 0)
             revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
@@ -90,19 +83,20 @@ contract ChainlinkOracle is Ownable, IOracle {
         return uint(answer);
     }
 
-    function isSequencerActive() private view returns (bool) {
+    function isSequencerActive() internal view returns (bool) {
         (, int256 answer,, uint256 updatedAt,) = sequencer.latestRoundData();
         return (answer == 0 && (block.timestamp - updatedAt) < 3600);
     }
 
-    // AdminOnly
+    /* -------------------------------------------------------------------------- */
+    /*                               ADMIN FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
+
     function setFeed(
         address token,
-        AggregatorV3Interface _feed,
-        uint256 heartBeat
+        AggregatorV3Interface _feed
     ) external adminOnly {
         feed[token] = _feed;
-        heartBeatOf[token] = heartBeat;
-        emit UpdateFeed(token, address(_feed), heartBeat);
+        emit UpdateFeed(token, address(_feed));
     }
 }
