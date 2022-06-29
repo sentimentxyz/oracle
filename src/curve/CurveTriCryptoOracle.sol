@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.11;
+pragma solidity ^0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
 
@@ -13,16 +13,44 @@ interface ICurvePool {
 // eth:0xE8b2989276E2Ca8FDEA2268E3551b2b4B2418950
 // https://twitter.com/curvefinance/status/1441538795493478415
 
+/**
+    @title Curve tri crypto oracle
+    @notice Price Oracle for crv3crypto
+*/
 contract CurveTriCryptoOracle is IOracle {
+
+    /* -------------------------------------------------------------------------- */
+    /*                              PUBLIC FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
+
+    /// @notice curve tri crypto pool address
     address immutable pool;
+
+    /* -------------------------------------------------------------------------- */
+    /*                             CONSTANT VARIABLES                             */
+    /* -------------------------------------------------------------------------- */
+
     uint constant GAMMA0 = 28000000000000;
     uint constant A0 = 2 * 3**3 * 10000;
     uint constant DISCOUNT0 = 1087460000000000;
 
+    /* -------------------------------------------------------------------------- */
+    /*                                 CONSTRUCTOR                                */
+    /* -------------------------------------------------------------------------- */
+
+    /**
+        @notice Contract constructor
+        @param _pool curve tri crypto pool address
+    */
     constructor(address _pool) {
         pool = _pool;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                              PUBLIC FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
+
+    /// @inheritdoc IOracle
     function getPrice(address) external view returns (uint) {
         uint g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
         uint a = ICurvePool(pool).A() * 1e18 / A0;
@@ -38,6 +66,10 @@ contract CurveTriCryptoOracle is IOracle {
 
         return (maxPrice * 1e18 / p2);
     }
+
+    /* -------------------------------------------------------------------------- */
+    /*                             INTERNAL FUNCTIONS                             */
+    /* -------------------------------------------------------------------------- */
 
     function cubicRoot(uint x) internal pure returns (uint) {
         uint D = x / 1e18;
