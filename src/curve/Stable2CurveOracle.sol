@@ -43,9 +43,8 @@ contract Stable2CurveOracle is IOracle {
     function getPrice(address token) external view returns (uint) {
         uint price0 = oracleFacade.getPrice(ICurvePool(token).coins(0));
         uint price1 = oracleFacade.getPrice(ICurvePool(token).coins(1));
-
-        uint price = (price0 < price1) ? price0 : price1;
-
-        return price.mul(ICurvePool(token).get_virtual_price());
+        return ((price0 < price1) ? price0 : price1).mul(
+            ICurvePool(token).get_virtual_price()
+        );
     }
 }
