@@ -20,7 +20,7 @@ interface ICurvePool {
 contract CurveTriCryptoOracle is IOracle {
 
     /* -------------------------------------------------------------------------- */
-    /*                              PUBLIC FUNCTIONS                              */
+    /*                               STATE VARIABLES                              */
     /* -------------------------------------------------------------------------- */
 
     /// @notice curve tri crypto pool address
