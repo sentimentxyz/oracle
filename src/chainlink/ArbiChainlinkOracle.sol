@@ -7,8 +7,8 @@ import {Errors} from "../utils/Errors.sol";
 import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 
 /**
-    @title Chain Link Oracle
-    @notice Oracle to fetch price using chainlink oracles
+    @title Arbitrum Chain Link Oracle
+    @notice Oracle to fetch price using chainlink oracles on arbitrum
 */
 contract ChainlinkOracle is Ownable, IOracle {
 
@@ -18,6 +18,9 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @notice ETH USD Chainlink price feed
     AggregatorV3Interface immutable ethUsdPriceFeed;
+
+    /// @notice L2 Sequencer feed
+    AggregatorV3Interface immutable sequencer;
 
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
@@ -35,9 +38,16 @@ contract ChainlinkOracle is Ownable, IOracle {
     /**
         @notice Contract constructor
         @param _ethUsdPriceFeed ETH USD Chainlink price feed
+        @param _sequencer L2 sequencer
     */
-    constructor(AggregatorV3Interface _ethUsdPriceFeed) Ownable(msg.sender) {
+    constructor(
+        AggregatorV3Interface _ethUsdPriceFeed,
+        AggregatorV3Interface _sequencer
+    )
+        Ownable(msg.sender)
+    {
         ethUsdPriceFeed = _ethUsdPriceFeed;
+        sequencer = _sequencer;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -46,6 +56,8 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external view override returns (uint) {
+        if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
+
         (, int answer,,,) =
             feed[token].latestRoundData();
 
@@ -69,6 +81,11 @@ contract ChainlinkOracle is Ownable, IOracle {
             revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
 
         return uint(answer);
+    }
+
+    function isSequencerActive() internal view returns (bool) {
+        (, int256 answer,,,) = sequencer.latestRoundData();
+        return answer == 0;
     }
 
     /* -------------------------------------------------------------------------- */
