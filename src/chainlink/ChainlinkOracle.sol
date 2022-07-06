@@ -45,6 +45,7 @@ contract ChainlinkOracle is Ownable, IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
+    /// @dev feed[token].latestRoundData should return price scaled by 8 decimals
     function getPrice(address token) external view override returns (uint) {
         (, int answer,,,) =
             feed[token].latestRoundData();
