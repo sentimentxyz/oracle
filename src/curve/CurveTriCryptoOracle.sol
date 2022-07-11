@@ -18,6 +18,7 @@ contract CurveTriCryptoOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice curve tri crypto price oracle
+    // https://twitter.com/curvefinance/status/1441538795493478415
     IPriceOracle immutable priceOracle;
 
     /* -------------------------------------------------------------------------- */
