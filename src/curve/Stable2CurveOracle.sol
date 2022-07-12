@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
-import {PRBMathUD60x18} from "prb-math/PRBMathUD60x18.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 interface ICurvePool {
     function coins(uint256) external view returns (address);
@@ -14,7 +14,7 @@ interface ICurvePool {
     @notice Price Oracle for 2 curve stable pool
 */
 contract Stable2CurveOracle is IOracle {
-    using PRBMathUD60x18 for uint;
+    using FixedPointMathLib for uint;
 
     /* -------------------------------------------------------------------------- */
     /*                               STATE VARIABLES                              */
@@ -43,7 +43,7 @@ contract Stable2CurveOracle is IOracle {
     function getPrice(address token) external view returns (uint) {
         uint price0 = oracleFacade.getPrice(ICurvePool(token).coins(0));
         uint price1 = oracleFacade.getPrice(ICurvePool(token).coins(1));
-        return ((price0 < price1) ? price0 : price1).mul(
+        return ((price0 < price1) ? price0 : price1).mulWadDown(
             ICurvePool(token).get_virtual_price()
         );
     }
