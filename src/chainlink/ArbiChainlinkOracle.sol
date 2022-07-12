@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import {IOracle} from "../core/IOracle.sol";
-import {Ownable} from "../utils/Ownable.sol";
+import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 import {Errors} from "../utils/Errors.sol";
 import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
 
@@ -10,26 +9,14 @@ import {AggregatorV3Interface} from "./AggregatorV3Interface.sol";
     @title Arbitrum Chain Link Oracle
     @notice Oracle to fetch price using chainlink oracles on arbitrum
 */
-contract ChainlinkOracle is Ownable, IOracle {
+contract ArbiChainlinkOracle is ChainlinkOracle {
 
     /* -------------------------------------------------------------------------- */
     /*                               STATE VARIABLES                              */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice ETH USD Chainlink price feed
-    AggregatorV3Interface immutable ethUsdPriceFeed;
-
     /// @notice L2 Sequencer feed
     AggregatorV3Interface immutable sequencer;
-
-    /// @notice Mapping of token to token/usd chainlink price feed
-    mapping(address => AggregatorV3Interface) public feed;
-
-    /* -------------------------------------------------------------------------- */
-    /*                                   EVENTS                                   */
-    /* -------------------------------------------------------------------------- */
-
-    event UpdateFeed(address indexed token, address indexed feed);
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -44,9 +31,8 @@ contract ChainlinkOracle is Ownable, IOracle {
         AggregatorV3Interface _ethUsdPriceFeed,
         AggregatorV3Interface _sequencer
     )
-        Ownable(msg.sender)
+        ChainlinkOracle(_ethUsdPriceFeed)
     {
-        ethUsdPriceFeed = _ethUsdPriceFeed;
         sequencer = _sequencer;
     }
 
@@ -54,7 +40,7 @@ contract ChainlinkOracle is Ownable, IOracle {
     /*                              PUBLIC FUNCTIONS                              */
     /* -------------------------------------------------------------------------- */
 
-    /// @inheritdoc IOracle
+    /// @inheritdoc ChainlinkOracle
     function getPrice(address token) external view override returns (uint) {
         if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
 
@@ -73,30 +59,8 @@ contract ChainlinkOracle is Ownable, IOracle {
     /*                             INTERNAL FUNCTIONS                             */
     /* -------------------------------------------------------------------------- */
 
-    function getEthPrice() internal view returns (uint) {
-        (, int answer,,,) =
-            ethUsdPriceFeed.latestRoundData();
-
-        if (answer < 0)
-            revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
-
-        return uint(answer);
-    }
-
     function isSequencerActive() internal view returns (bool) {
         (, int256 answer,,,) = sequencer.latestRoundData();
         return answer == 0;
-    }
-
-    /* -------------------------------------------------------------------------- */
-    /*                               ADMIN FUNCTIONS                              */
-    /* -------------------------------------------------------------------------- */
-
-    function setFeed(
-        address token,
-        AggregatorV3Interface _feed
-    ) external adminOnly {
-        feed[token] = _feed;
-        emit UpdateFeed(token, address(_feed));
     }
 }
