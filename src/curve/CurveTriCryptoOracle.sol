@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
 
-interface IPriceOracle {
+interface ICurveTriCryptoOracle {
     function lp_price() external view returns (uint256);
 }
 
@@ -19,7 +19,7 @@ contract CurveTriCryptoOracle is IOracle {
 
     /// @notice curve tri crypto price oracle
     // https://twitter.com/curvefinance/status/1441538795493478415
-    IPriceOracle immutable priceOracle;
+    ICurveTriCryptoOracle immutable curveTriCryptoOracle;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -27,10 +27,10 @@ contract CurveTriCryptoOracle is IOracle {
 
     /**
         @notice Contract constructor
-        @param _priceOracle curve tri crypto price oracle
+        @param _curveTriCryptoOracle curve tri crypto price oracle
     */
-    constructor(IPriceOracle _priceOracle) {
-        priceOracle = _priceOracle;
+    constructor(ICurveTriCryptoOracle _curveTriCryptoOracle) {
+        curveTriCryptoOracle = _curveTriCryptoOracle;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -39,6 +39,6 @@ contract CurveTriCryptoOracle is IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address) external view returns (uint) {
-        return IPriceOracle(priceOracle).lp_price();
+        return curveTriCryptoOracle.lp_price();
     }
 }
