@@ -40,7 +40,7 @@ contract UniV2LpOracle is IOracle {
         (uint r0, uint r1,) = IUniswapV2Pair(pair).getReserves();
 
         // 2 * sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
-        return FixedPointMathLib.sqrt(r0.mulWadUp(r1))
+        return FixedPointMathLib.sqrt(r0.mulWadDown(r1))
             .divWadDown(IUniswapV2Pair(pair).totalSupply())
             .mulWadDown(
                 FixedPointMathLib.sqrt(
