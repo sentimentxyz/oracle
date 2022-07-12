@@ -4,14 +4,13 @@ pragma solidity 0.8.15;
 import {ICToken} from "./ICToken.sol";
 import {IERC20} from "../utils/IERC20.sol";
 import {IOracle} from "../core/IOracle.sol";
-import {PRBMathUD60x18} from "prb-math/PRBMathUD60x18.sol";
-
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 /**
     @title Compound cToken oracle
     @notice Price oracle for cToken
 */
 contract CTokenOracle is IOracle {
-    using PRBMathUD60x18 for uint;
+    using FixedPointMathLib for uint;
 
     /* -------------------------------------------------------------------------- */
     /*                               STATE VARIABLES                              */
@@ -61,7 +60,7 @@ contract CTokenOracle is IOracle {
             thus the cEther price can be computed as --
             exchangeRateStored() / 1e10 * 1e18 = exchangeRateStored * 1e8
         */
-        return ICToken(cETHER).exchangeRateStored().mul(1e8);
+        return ICToken(cETHER).exchangeRateStored().mulWadDown(1e8);
     }
 
     function getCErc20Price(ICToken cToken, address underlying) internal view returns (uint) {
@@ -71,8 +70,8 @@ contract CTokenOracle is IOracle {
             number of decimals in the underlying token. Finally to find the price of the cToken we
             must multiply this value with the current price of the underlying token
         */
-        return cToken.exchangeRateStored().mul(1e8)
-            .div(IERC20(underlying).decimals())
-            .mul(oracle.getPrice(underlying));
+        return cToken.exchangeRateStored().mulWadDown(1e8)
+            .divWadDown(IERC20(underlying).decimals())
+            .mulWadDown(oracle.getPrice(underlying));
     }
 }

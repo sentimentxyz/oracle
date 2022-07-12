@@ -3,14 +3,13 @@ pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
 import {IUniswapV2Pair} from "./IUniswapV2Pair.sol";
-import {PRBMathUD60x18} from "prb-math/PRBMathUD60x18.sol";
-
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 /**
     @title Uniswap v2 LP Oracle
     @notice Price oracle for uniswap v2 LP Tokens
 */
 contract UniV2LpOracle is IOracle {
-    using PRBMathUD60x18 for uint;
+    using FixedPointMathLib for uint;
 
     /* -------------------------------------------------------------------------- */
     /*                              PUBLIC FUNCTIONS                              */
@@ -41,12 +40,13 @@ contract UniV2LpOracle is IOracle {
         (uint r0, uint r1,) = IUniswapV2Pair(pair).getReserves();
 
         // 2 * sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
-        return r0
-            .gm(r1)
-            .div(IUniswapV2Pair(pair).totalSupply())
-            .mul(
-                oracle.getPrice(IUniswapV2Pair(pair).token0())
-                .gm(oracle.getPrice(IUniswapV2Pair(pair).token1()))
-            ).mul(2e18);
+        return FixedPointMathLib.sqrt(r0.mulWadUp(r1))
+            .divWadDown(IUniswapV2Pair(pair).totalSupply())
+            .mulWadDown(
+                FixedPointMathLib.sqrt(
+                    oracle.getPrice(IUniswapV2Pair(pair).token0())
+                    .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token1()))
+                )
+            ).mulWadDown(2e18);
     }
 }
