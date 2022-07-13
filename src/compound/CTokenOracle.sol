@@ -70,8 +70,8 @@ contract CTokenOracle is IOracle {
             number of decimals in the underlying token. Finally to find the price of the cToken we
             must multiply this value with the current price of the underlying token
         */
-        return cToken.exchangeRateStored().mulWadDown(1e8)
-            .divWadDown(IERC20(underlying).decimals())
-            .mulWadDown(oracle.getPrice(underlying));
+        return cToken.exchangeRateStored()
+        .mulDivDown(1e8 , IERC20(underlying).decimals())
+        .mulWadDown(oracle.getPrice(underlying));
     }
 }

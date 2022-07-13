@@ -39,14 +39,13 @@ contract UniV2LpOracle is IOracle {
     function getPrice(address pair) external view returns (uint) {
         (uint r0, uint r1,) = IUniswapV2Pair(pair).getReserves();
 
-        // 2 * sqrt(r0 * r1) * sqrt(p0 * p1) / totalSupply
-        return FixedPointMathLib.sqrt(r0.mulWadDown(r1))
-            .divWadDown(IUniswapV2Pair(pair).totalSupply())
-            .mulWadDown(
-                FixedPointMathLib.sqrt(
-                    oracle.getPrice(IUniswapV2Pair(pair).token0())
-                    .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token1()))
-                )
-            ).mulWadDown(2e18);
+        // 2 * sqrt(r0 * r1 * p0 * p1) / totalSupply
+        return FixedPointMathLib.sqrt(
+            r0
+            .mulWadDown(r1)
+            .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token0()))
+            .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token1()))
+        )
+        .mulDivDown(2e18, IUniswapV2Pair(pair).totalSupply());
     }
 }
