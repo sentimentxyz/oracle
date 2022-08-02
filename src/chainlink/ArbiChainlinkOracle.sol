@@ -18,6 +18,9 @@ contract ArbiChainlinkOracle is ChainlinkOracle {
     /// @notice L2 Sequencer feed
     AggregatorV3Interface immutable sequencer;
 
+    /// @notice L2 Sequencer grace period
+    uint256 private constant GRACE_PERIOD_TIME = 3600;
+
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
     /* -------------------------------------------------------------------------- */
@@ -60,7 +63,9 @@ contract ArbiChainlinkOracle is ChainlinkOracle {
     /* -------------------------------------------------------------------------- */
 
     function isSequencerActive() internal view returns (bool) {
-        (, int256 answer,,,) = sequencer.latestRoundData();
-        return answer == 0;
+        (, int256 answer, uint256 startedAt,,) = sequencer.latestRoundData();
+        if (block.timestamp - startedAt <= GRACE_PERIOD_TIME || answer == 1)
+            return false;
+        return true;
     }
 }
