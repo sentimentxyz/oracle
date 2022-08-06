@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity 0.8.15;
 
-import './TickMath.sol';
-import '../interface/IUniswapV3Pool.sol';
-import 'solmate/utils/FixedPointMathLib.sol';
+import "./TickMath.sol";
+import "v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import "solmate/utils/FixedPointMathLib.sol";
 
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle, Forked from
