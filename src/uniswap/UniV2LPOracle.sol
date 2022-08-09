@@ -2,7 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
-import {IUniswapV2Pair} from "./IUniswapV2Pair.sol";
+import {IUniswapV2Pair} from "./interface/IUniswapV2Pair.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 /**
     @title Uniswap v2 LP Oracle
