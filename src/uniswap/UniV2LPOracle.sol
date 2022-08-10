@@ -46,6 +46,6 @@ contract UniV2LpOracle is IOracle {
             .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token0()))
             .mulWadDown(oracle.getPrice(IUniswapV2Pair(pair).token1()))
         )
-        .mulDivDown(2e18, IUniswapV2Pair(pair).totalSupply());
+        .mulDivDown(2e27, IUniswapV2Pair(pair).totalSupply());
     }
 }
