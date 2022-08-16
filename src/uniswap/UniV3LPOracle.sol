@@ -35,11 +35,11 @@ contract UniV3LPOracle is IERC721Oracle {
     function getPrice(address token, address account) external view returns (uint256 price) {
         uint balance = IERC721Enumerable(token).balanceOf(account);
         for (uint i; i < balance; i++) {
-            price += getPriceOfToken(IERC721Enumerable(token).tokenOfOwnerByIndex(account, i));
+            price += getPrice(IERC721Enumerable(token).tokenOfOwnerByIndex(account, i));
         }
     }
 
-    function getPriceOfToken(uint tokenID) public view returns (uint256 value) {
+    function getPrice(uint tokenID) public view returns (uint256 value) {
         (
             address token0,
             uint256 amount0,

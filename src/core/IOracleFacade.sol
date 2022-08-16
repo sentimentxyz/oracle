@@ -16,4 +16,12 @@ interface IOracleFacade {
         @return price Price of token IDs owned by account in terms of ETH
     */
     function getPrice(address token, address account) external view returns (uint);
+
+    /**
+        @notice Fetches price of the tokenID of a given ERC721
+        @param token Address of ERC721 token
+        @param tokenId Token ID
+        @return price Price of token IDs owned by account in terms of ETH
+    */
+    function getPrice(address token, uint256 tokenId) external view returns (uint);
 }

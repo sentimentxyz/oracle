@@ -3,6 +3,7 @@ pragma solidity 0.8.15;
 
 import {IAToken} from "./IAToken.sol";
 import {IOracle} from "../core/IOracle.sol";
+import {IOracleFacade} from "../core/IOracleFacade.sol";
 
 /**
     @title Aave aToken Oracle
@@ -15,7 +16,7 @@ contract ATokenOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Oracle Facade
-    IOracle public immutable oracle;
+    IOracleFacade public immutable oracle;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -25,7 +26,7 @@ contract ATokenOracle is IOracle {
         @notice Contract constructor
         @param _oracle Oracle Facade Address
     */
-    constructor(IOracle _oracle) {
+    constructor(IOracleFacade _oracle) {
         oracle = _oracle;
     }
 

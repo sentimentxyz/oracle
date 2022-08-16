@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
+import {IOracleFacade} from "../core/IOracleFacade.sol";
 import {IUniswapV2Pair} from "./interface/IUniswapV2Pair.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 /**
@@ -16,7 +17,7 @@ contract UniV2LpOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Oracle Facade
-    IOracle public immutable oracle;
+    IOracleFacade public immutable oracle;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -26,7 +27,7 @@ contract UniV2LpOracle is IOracle {
         @notice Contract constructor
         @param _oracle Address of Oracle Facade
     */
-    constructor(IOracle _oracle) {
+    constructor(IOracleFacade _oracle) {
         oracle = _oracle;
     }
 

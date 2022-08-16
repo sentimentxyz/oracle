@@ -4,6 +4,7 @@ pragma solidity 0.8.15;
 import {ICToken} from "./ICToken.sol";
 import {IERC20} from "../utils/IERC20.sol";
 import {IOracle} from "../core/IOracle.sol";
+import {IOracleFacade} from "../core/IOracleFacade.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 /**
     @title Compound cToken oracle
@@ -17,7 +18,7 @@ contract CTokenOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Oracle Facade
-    IOracle public immutable oracle;
+    IOracleFacade public immutable oracle;
 
     /// @notice cEther
     address public immutable cETHER;
@@ -31,7 +32,7 @@ contract CTokenOracle is IOracle {
         @param _oracle Oracle Facade
         @param _cETHER cEther
     */
-    constructor(IOracle _oracle, address _cETHER) {
+    constructor(IOracleFacade _oracle, address _cETHER) {
         oracle = _oracle;
         cETHER = _cETHER;
     }

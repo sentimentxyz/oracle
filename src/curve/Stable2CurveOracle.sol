@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
+import {IOracleFacade} from "../core/IOracleFacade.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 interface ICurvePool {
@@ -21,7 +22,7 @@ contract Stable2CurveOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Oracle Facade
-    IOracle immutable oracleFacade;
+    IOracleFacade immutable oracleFacade;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -31,7 +32,7 @@ contract Stable2CurveOracle is IOracle {
         @notice Contract constructor
         @param _oracle Address of oracleFacade
     */
-    constructor(IOracle _oracle) {
+    constructor(IOracleFacade _oracle) {
         oracleFacade = _oracle;
     }
 

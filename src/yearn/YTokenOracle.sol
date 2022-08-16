@@ -2,6 +2,7 @@
 pragma solidity 0.8.15;
 
 import {IOracle} from "../core/IOracle.sol";
+import {IOracleFacade} from "../core/IOracleFacade.sol";
 
 interface IYVault {
     function token() external view returns (address);
@@ -20,7 +21,7 @@ contract YTokenOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice Oracle Facade
-    IOracle public oracle;
+    IOracleFacade public oracle;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -30,7 +31,7 @@ contract YTokenOracle is IOracle {
         @notice Contract constructor
         @param _oracle Address for oracle facade
     */
-    constructor(IOracle _oracle) {
+    constructor(IOracleFacade _oracle) {
         oracle = _oracle;
     }
 

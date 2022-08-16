@@ -53,6 +53,12 @@ contract OracleFacade is Ownable, IOracleFacade {
         return erc721Oracle[token].getPrice(token, account);
     }
 
+    /// @inheritdoc IOracleFacade
+    function getPrice(address token, uint256 tokenId) external view returns (uint) {
+        if(address(erc721Oracle[token]) == address(0)) revert Errors.PriceUnavailable();
+        return erc721Oracle[token].getPrice(tokenId);
+    }
+
     /* -------------------------------------------------------------------------- */
     /*                               ADMIN FUNCTIONS                              */
     /* -------------------------------------------------------------------------- */
