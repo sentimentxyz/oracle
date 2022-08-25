@@ -1,19 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import "src/core/IOracle.sol";
-import "src/utils/IERC20.sol";
-import "./library/FixedPoint.sol";
-
-interface IPool {
-    function totalSupply() external view returns (uint256);
-    function getPoolId() external view returns (bytes32);
-    function getNormalizedWeights() external view returns (uint256[] memory);
-}
-
-interface IVault {
-    function getPoolTokens(bytes32) external view returns (address[] memory, uint256[] memory, uint256);
-}
+import {IOracle} from "../core/IOracle.sol";
+import {IERC20} from "../utils/IERC20.sol";
+import {IVault} from "./IVault.sol";
+import {IPool} from "./IPool.sol";
+import {FixedPoint} from "./library/FixedPoint.sol";
 
 /**
     @title Balancer LP Oracle for weighted pool
