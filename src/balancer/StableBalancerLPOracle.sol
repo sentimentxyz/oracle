@@ -8,9 +8,8 @@ import {IVault} from "./IVault.sol";
 import {IPool} from "./IPool.sol";
 
 /**
-    @title Balancer LP Oracle for weighted pool
-    @notice Oracle for weighted balancer pool tokens
-    https://dev.balancer.fi/references/lp-tokens/valuing
+    @title Balancer LP Oracle for stable pool
+    @notice Oracle for stable balancer pool tokens
 */
 contract StableBalancerLPOracle is IOracle {
     using FixedPointMathLib for uint;
