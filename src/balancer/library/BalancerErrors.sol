@@ -14,6 +14,9 @@
 
 pragma solidity 0.8.15;
 
+/// Forked from https://github.com/balancer-labs/balancer-v2-monorepo/blob/3703c43c89dc693b918d20ebb0d9e4b205d31c2c/contracts/lib/helpers/BalancerErrors.sol
+/// Updated solidity version to 0.8.X
+
 // solhint-disable
 
 /**

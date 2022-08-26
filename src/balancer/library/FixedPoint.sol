@@ -20,6 +20,8 @@ import "./LogExpMath.sol";
 
 /* solhint-disable private-vars-leading-underscore */
 
+/// forked from https://github.com/balancer-labs/balancer-v2-monorepo/blob/master/pkg/solidity-utils/contracts/math/FixedPoint.sol
+/// Updated to solidity version 0.8.X
 library FixedPoint {
     uint256 internal constant ONE = 1e18; // 18 decimal places
     uint256 internal constant TWO = 2 * ONE;

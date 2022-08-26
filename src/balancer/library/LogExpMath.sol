@@ -18,6 +18,8 @@ import "./BalancerErrors.sol";
 
 /* solhint-disable */
 
+/// Forked from https://github.com/balancer-labs/balancer-v2-monorepo/blob/master/pkg/solidity-utils/contracts/math/LogExpMath.sol
+/// updated to solidity version 0.8.x
 /**
  * @dev Exponentiation and logarithm functions for 18 decimal fixed point numbers (both base and exponent/argument).
  *
