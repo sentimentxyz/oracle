@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.15;
+pragma solidity ^0.8.15;
 
 import {ChainlinkOracle} from "./ChainlinkOracle.sol";
 import {Errors} from "../utils/Errors.sol";
