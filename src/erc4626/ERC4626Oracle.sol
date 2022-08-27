@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import "src/core/IOracle.sol";
+import "../core/IOracle.sol";
 import "./IERC4626.sol";
 import "solmate/utils/FixedPointMathLib.sol";
 
