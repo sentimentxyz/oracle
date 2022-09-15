@@ -31,6 +31,10 @@ contract BeefyOracle is IOracle {
         oracleFacade = _oracleFacade;
     }
 
+    /* -------------------------------------------------------------------------- */
+    /*                              PUBLIC FUNCTIONS                              */
+    /* -------------------------------------------------------------------------- */
+
     /// @inheritdoc IOracle
     function getPrice(address token) external view returns (uint256) {
         return IVault(token).getPricePerFullShare()
