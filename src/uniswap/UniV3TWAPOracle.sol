@@ -4,7 +4,7 @@ pragma solidity ^0.8.17;
 import {Errors} from "../utils/Errors.sol";
 import {IOracle} from "../core/IOracle.sol";
 import {Ownable} from "../utils/Ownable.sol";
-import {OracleLibrary} from "./library/OracleLibrary.sol";
+import {IOracleLibrary} from "./library/IOracleLibrary.sol";
 import {IERC20} from "../utils/IERC20.sol";
 
 /**
@@ -24,6 +24,10 @@ contract UniV3TWAPOracle is Ownable, IOracle {
     /// @notice arbi:WETH
     address public constant WETH = 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1;
 
+    /// @notice Uniswap Oracle Library
+    /// arbi:0xFf7500eaB475fa1Ee832A45A702c26686d49e829
+    IOracleLibrary immutable oracleLibrary;
+
     /// @notice mapping of token to token-WETH Uniswap v3 pool
     mapping(address => address) poolFor;
 
@@ -31,7 +35,13 @@ contract UniV3TWAPOracle is Ownable, IOracle {
     /*                                 CONSTRUCTOR                                */
     /* -------------------------------------------------------------------------- */
 
-    constructor() Ownable(msg.sender) {}
+    /**
+        @notice Constructor
+        @param _oracleLibrary Uniswap oracle library
+    */
+    constructor(IOracleLibrary _oracleLibrary) Ownable(msg.sender) {
+        oracleLibrary = _oracleLibrary;
+    }
 
     /* -------------------------------------------------------------------------- */
     /*                              PUBLIC FUNCTIONS                              */
@@ -45,12 +55,12 @@ contract UniV3TWAPOracle is Ownable, IOracle {
             revert Errors.PriceUnavailable();
         }
 
-        (int24 arithmeticMeanTick, ) = OracleLibrary.consult(
+        (int24 arithmeticMeanTick, ) = oracleLibrary.consult(
             pool,
             twapPeriod
         );
 
-        return OracleLibrary.getQuoteAtTick(
+        return oracleLibrary.getQuoteAtTick(
             arithmeticMeanTick,
             uint128(10) ** IERC20(token).decimals(),
             token,

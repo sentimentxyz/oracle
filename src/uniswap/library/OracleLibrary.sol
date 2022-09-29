@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity ^0.8.17;
+pragma solidity >=0.5.0 <0.8.0;
 
-import "./TickMath.sol";
-import "v3-core/contracts/interfaces/IUniswapV3Pool.sol";
-import "solmate/utils/FixedPointMathLib.sol";
+import 'v3-core/contracts/libraries/FullMath.sol';
+import 'v3-core/contracts/libraries/TickMath.sol';
+import 'v3-core/contracts/interfaces/IUniswapV3Pool.sol';
 
 /// @title Oracle library
-/// @notice Provides functions to integrate with V3 pool oracle, Forked from
-/// https://github.com/Uniswap/v3-periphery/blob/main/contracts/libraries/OracleLibrary.sol
+/// @notice Provides functions to integrate with V3 pool oracle
 library OracleLibrary {
     /// @notice Calculates time-weighted means of tick and liquidity for a given Uniswap V3 pool
     /// @param pool Address of the pool that we want to observe
@@ -15,7 +14,7 @@ library OracleLibrary {
     /// @return arithmeticMeanTick The arithmetic mean tick from (block.timestamp - secondsAgo) to block.timestamp
     /// @return harmonicMeanLiquidity The harmonic mean liquidity from (block.timestamp - secondsAgo) to block.timestamp
     function consult(address pool, uint32 secondsAgo)
-        internal
+        public
         view
         returns (int24 arithmeticMeanTick, uint128 harmonicMeanLiquidity)
     {
@@ -32,9 +31,9 @@ library OracleLibrary {
         uint160 secondsPerLiquidityCumulativesDelta =
             secondsPerLiquidityCumulativeX128s[1] - secondsPerLiquidityCumulativeX128s[0];
 
-        arithmeticMeanTick = int24(tickCumulativesDelta / int32(secondsAgo));
+        arithmeticMeanTick = int24(tickCumulativesDelta / secondsAgo);
         // Always round to negative infinity
-        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % int32(secondsAgo) != 0)) arithmeticMeanTick--;
+        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % secondsAgo != 0)) arithmeticMeanTick--;
 
         // We are multiplying here instead of shifting to ensure that harmonicMeanLiquidity doesn't overflow uint128
         uint192 secondsAgoX160 = uint192(secondsAgo) * type(uint160).max;
@@ -52,20 +51,20 @@ library OracleLibrary {
         uint128 baseAmount,
         address baseToken,
         address quoteToken
-    ) internal pure returns (uint256 quoteAmount) {
+    ) public pure returns (uint256 quoteAmount) {
         uint160 sqrtRatioX96 = TickMath.getSqrtRatioAtTick(tick);
 
         // Calculate quoteAmount with better precision if it doesn't overflow when multiplied by itself
         if (sqrtRatioX96 <= type(uint128).max) {
             uint256 ratioX192 = uint256(sqrtRatioX96) * sqrtRatioX96;
             quoteAmount = baseToken < quoteToken
-                ? FixedPointMathLib.mulDivDown(ratioX192, baseAmount, 1 << 192)
-                : FixedPointMathLib.mulDivDown(1 << 192, baseAmount, ratioX192);
+                ? FullMath.mulDiv(ratioX192, baseAmount, 1 << 192)
+                : FullMath.mulDiv(1 << 192, baseAmount, ratioX192);
         } else {
-            uint256 ratioX128 = FixedPointMathLib.mulDivDown(sqrtRatioX96, sqrtRatioX96, 1 << 64);
+            uint256 ratioX128 = FullMath.mulDiv(sqrtRatioX96, sqrtRatioX96, 1 << 64);
             quoteAmount = baseToken < quoteToken
-                ? FixedPointMathLib.mulDivDown(ratioX128, baseAmount, 1 << 128)
-                : FixedPointMathLib.mulDivDown(1 << 128, baseAmount, ratioX128);
+                ? FullMath.mulDiv(ratioX128, baseAmount, 1 << 128)
+                : FullMath.mulDiv(1 << 128, baseAmount, ratioX128);
         }
     }
 }
