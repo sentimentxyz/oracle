@@ -12,4 +12,6 @@ interface AggregatorV3Interface {
       uint256 updatedAt,
       uint80 answeredInRound
     );
+
+    function decimals() external view returns (uint);
 }

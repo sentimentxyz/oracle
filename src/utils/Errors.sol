@@ -5,6 +5,7 @@ interface Errors {
     error AdminOnly();
     error ZeroAddress();
     error PriceUnavailable();
+    error IncorrectDecimals();
     error L2SequencerUnavailable();
     error InactivePriceFeed(address feed);
     error NegativePrice(address token, address feed);
