@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
-import "../core/IOracle.sol";
-import "./IERC4626.sol";
-import "solmate/utils/FixedPointMathLib.sol";
+import {IERC4626} from "./IERC4626.sol";
+import {IERC20} from "../utils/IERC20.sol";
+import {IOracle} from "../core/IOracle.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 contract ERC4626Oracle is IOracle {
     using FixedPointMathLib for uint256;
@@ -32,13 +33,13 @@ contract ERC4626Oracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
-        uint decimals = IERC4626(token).decimals();
-        return IERC4626(token).previewRedeem(
-            10 ** decimals
+    function getPrice(address vault) external view returns (uint) {
+        address asset = IERC4626(vault).asset();
+        return IERC4626(vault).previewRedeem(
+            10 ** IERC4626(vault).decimals()
         ).mulDivDown(
-            oracleFacade.getPrice(IERC4626(token).asset()),
-            10 ** decimals
+            oracleFacade.getPrice(asset),
+            10 ** IERC20(asset).decimals()
         );
     }
 }
