@@ -22,6 +22,9 @@ contract ChainlinkOracle is Ownable, IOracle {
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
 
+    /// @notice HeatBeat of chainlink feed
+    mapping(address => uint) public heartBeatOf;
+
     /* -------------------------------------------------------------------------- */
     /*                                   EVENTS                                   */
     /* -------------------------------------------------------------------------- */
@@ -47,10 +50,13 @@ contract ChainlinkOracle is Ownable, IOracle {
     /// @inheritdoc IOracle
     /// @dev feed[token].latestRoundData should return price scaled by 8 decimals
     function getPrice(address token) external view virtual returns (uint) {
-        (, int answer,,,) =
+        (, int answer,, uint updatedAt,) =
             feed[token].latestRoundData();
 
-        if (answer < 0)
+        if (block.timestamp - updatedAt >= heartBeatOf[token])
+            revert Errors.StalePrice(token, address(feed[token]));
+
+        if (answer <= 0)
             revert Errors.NegativePrice(token, address(feed[token]));
 
         return (
@@ -63,10 +69,13 @@ contract ChainlinkOracle is Ownable, IOracle {
     /* -------------------------------------------------------------------------- */
 
     function getEthPrice() internal view returns (uint) {
-        (, int answer,,,) =
+        (, int answer,, uint updatedAt,) =
             ethUsdPriceFeed.latestRoundData();
 
-        if (answer < 0)
+        if (block.timestamp - updatedAt >= 86400)
+            revert Errors.StalePrice(address(0), address(ethUsdPriceFeed));
+
+        if (answer <= 0)
             revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
 
         return uint(answer);
@@ -78,9 +87,11 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     function setFeed(
         address token,
-        AggregatorV3Interface _feed
+        AggregatorV3Interface _feed,
+        uint heartBeat
     ) external adminOnly {
         feed[token] = _feed;
+        heartBeatOf[token] = heartBeat;
         emit UpdateFeed(token, address(_feed));
     }
 }
