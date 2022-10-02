@@ -8,5 +8,6 @@ interface Errors {
     error IncorrectDecimals();
     error L2SequencerUnavailable();
     error InactivePriceFeed(address feed);
+    error StalePrice(address token, address feed);
     error NegativePrice(address token, address feed);
 }
