@@ -80,6 +80,7 @@ contract ChainlinkOracle is Ownable, IOracle {
         address token,
         AggregatorV3Interface _feed
     ) external adminOnly {
+        if (_feed.decimals() != 8) revert Errors.IncorrectDecimals();
         feed[token] = _feed;
         emit UpdateFeed(token, address(_feed));
     }
