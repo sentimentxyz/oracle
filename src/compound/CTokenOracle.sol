@@ -71,7 +71,7 @@ contract CTokenOracle is IOracle {
             must multiply this value with the current price of the underlying token
         */
         return cToken.exchangeRateStored()
-        .mulDivDown(1e8 , IERC20(underlying).decimals())
+        .mulDivDown(1e8 , 10 ** IERC20(underlying).decimals())
         .mulWadDown(oracle.getPrice(underlying));
     }
 }
