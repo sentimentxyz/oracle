@@ -5,7 +5,6 @@ import {IERC20} from "../utils/IERC20.sol";
 import {IOracle} from "../core/IOracle.sol";
 import {IUniswapV2Pair} from "./IUniswapV2Pair.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
-import "forge-std/console.sol";
 
 /**
     @title Uniswap v2 LP Oracle
