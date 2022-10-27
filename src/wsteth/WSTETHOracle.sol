@@ -2,7 +2,7 @@
 pragma solidity ^0.8.17;
 
 import {Errors} from "../utils/Errors.sol";
-import {IOracle} from "src/core/IOracle.sol";
+import {IOracle} from "../core/IOracle.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {AggregatorV3Interface} from "../chainlink/AggregatorV3Interface.sol";
 
