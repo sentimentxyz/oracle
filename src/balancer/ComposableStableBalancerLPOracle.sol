@@ -8,8 +8,8 @@ import {IOracle} from "../core/IOracle.sol";
 import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 
 /**
-    @title Balancer LP Oracle for stable pool
-    @notice Oracle for stable balancer pool tokens
+    @title Balancer LP Oracle for composable stable pool
+    @notice Oracle for composable stable balancer pool tokens
 */
 contract ComposableStableBalancerLPOracle is IOracle {
     using FixedPointMathLib for uint;
