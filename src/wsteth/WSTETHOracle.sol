@@ -27,6 +27,12 @@ contract WSTETHOracle is IOracle {
     /// @notice ETH USD Chainlink price feed
     AggregatorV3Interface immutable ethUsdPriceFeed;
 
+    /// @notice L2 Sequencer feed
+    AggregatorV3Interface immutable sequencer;
+
+    /// @notice L2 Sequencer grace period
+    uint256 private constant GRACE_PERIOD_TIME = 3600;
+
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
     /* -------------------------------------------------------------------------- */
@@ -34,16 +40,20 @@ contract WSTETHOracle is IOracle {
     constructor(
         AggregatorV3Interface _WSTETHFeed,
         AggregatorV3Interface _STETHFeed,
-        AggregatorV3Interface _ethUsdPriceFeed
+        AggregatorV3Interface _ethUsdPriceFeed,
+        AggregatorV3Interface _sequencer
     )
     {
         WSTETHFeed = _WSTETHFeed;
         STETHFeed = _STETHFeed;
         ethUsdPriceFeed = _ethUsdPriceFeed;
+        sequencer = _sequencer;
     }
 
     /// @inheritdoc IOracle
     function getPrice(address token) external view returns (uint) {
+        if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
+
         (, int answer,, uint updatedAt,) =
             WSTETHFeed.latestRoundData();
 
@@ -86,5 +96,12 @@ contract WSTETHOracle is IOracle {
             revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
 
         return uint(answer);
+    }
+
+    function isSequencerActive() internal view returns (bool) {
+        (, int256 answer, uint256 startedAt,,) = sequencer.latestRoundData();
+        if (block.timestamp - startedAt <= GRACE_PERIOD_TIME || answer == 1)
+            return false;
+        return true;
     }
 }
