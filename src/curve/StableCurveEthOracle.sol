@@ -9,11 +9,15 @@ interface ICurvePool {
     function get_virtual_price() external view returns (uint256);
 }
 
+interface ICurveLP {
+    function minter() external view returns (ICurvePool);
+}
+
 /**
-    @title Stable 2 curve oracle for ETH/Token pair
-    @notice Price Oracle for 2 curve stable eth lp
+    @title Stable curve oracle for ETH/Token(s) pair
+    @notice Price Oracle for curve stable eth lp
 */
-contract Stable2CurveEthOracle is IOracle {
+contract StableCurveEthOracle is IOracle {
     using FixedPointMathLib for uint;
 
     /* -------------------------------------------------------------------------- */
@@ -23,11 +27,14 @@ contract Stable2CurveEthOracle is IOracle {
     /// @notice Oracle Facade
     IOracle immutable oracleFacade;
 
-    ICurvePool immutable pool;
-
+    /// @notice WETH
     address immutable WETH;
 
-    address immutable TOKEN;
+    /// @notice number of coins in the pool
+    uint immutable N_COINS;
+
+    /// @notice ETH address used by curve
+    address constant ETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -37,11 +44,10 @@ contract Stable2CurveEthOracle is IOracle {
         @notice Contract constructor
         @param _oracle Address of oracleFacade
     */
-    constructor(IOracle _oracle, address _WETH, ICurvePool _pool, address _token) {
+    constructor(IOracle _oracle, address _WETH, uint _coins) {
         oracleFacade = _oracle;
-        pool = _pool;
         WETH = _WETH;
-        TOKEN = _token;
+        N_COINS = _coins;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -49,11 +55,20 @@ contract Stable2CurveEthOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address) external view returns (uint) {
-        uint price0 = oracleFacade.getPrice(WETH);
-        uint price1 = oracleFacade.getPrice(TOKEN);
-        return ((price0 < price1) ? price0 : price1).mulWadDown(
-            pool.get_virtual_price()
-        );
+    function getPrice(address token) external view returns (uint) {
+        ICurvePool pool = ICurveLP(token).minter();
+
+        address coin;
+        uint price;
+        uint minPrice = oracleFacade.getPrice(WETH);
+        for(uint i; i<N_COINS; i++) {
+            coin = pool.coins(i);
+            if (coin != ETH) {
+                price = oracleFacade.getPrice(coin);
+                minPrice = (price < minPrice) ? price : minPrice;
+            }
+        }
+
+        return minPrice.mulWadDown(pool.get_virtual_price());
     }
 }
