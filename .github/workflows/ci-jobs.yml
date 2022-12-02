@@ -19,3 +19,6 @@ jobs:
         uses: onbjerg/foundry-toolchain@v1.0.5
         with:
           version: nightly
+
+      - name: Run tests
+        run: forge test --fork-url  https://arb1.arbitrum.io/rpc -vvv
