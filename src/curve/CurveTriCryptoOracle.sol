@@ -5,8 +5,11 @@ import {Errors} from "../utils/Errors.sol";
 import {IOracle} from "../core/IOracle.sol";
 import {AggregatorV3Interface} from "../chainlink/AggregatorV3Interface.sol";
 
-interface ICurveTriCryptoOracle {
-    function lp_price() external view returns (uint256);
+interface ICurvePool {
+    function A() external view returns (uint256);
+    function gamma() external view returns (uint256);
+    function virtual_price() external view returns (uint256);
+    function price_oracle(uint256) external view returns (uint256);
 }
 
 /**
@@ -19,12 +22,21 @@ contract CurveTriCryptoOracle is IOracle {
     /*                               STATE VARIABLES                              */
     /* -------------------------------------------------------------------------- */
 
-    /// @notice curve tri crypto price oracle
-    // https://twitter.com/curvefinance/status/1441538795493478415
-    ICurveTriCryptoOracle immutable curveTriCryptoOracle;
+    uint256 public constant GAMMA0 = 28000000000000;
+    uint256 public constant A0 = 2 * 3**3 * 10000;
+    uint256 public constant DISCOUNT0 = 1087460000000000;
+
+    /// @notice curve tricrypto pool
+    ICurvePool public immutable pool;
 
     /// @notice ETH USD Chainlink price feed
-    AggregatorV3Interface immutable ethUsdPriceFeed;
+    AggregatorV3Interface public immutable ethUSDFeed;
+
+    /// @notice WBTC USD Chainlink price feed
+    AggregatorV3Interface public immutable btcUSDFeed;
+
+    /// @notice USDT USD Chainlink price feed
+    AggregatorV3Interface public immutable usdtUSDFeed;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -32,15 +44,20 @@ contract CurveTriCryptoOracle is IOracle {
 
     /**
         @notice Contract constructor
-        @param _curveTriCryptoOracle curve tri crypto price oracle
-        @param _feed eth/usd feed
+        @param _ethUSDFeed eth/usd feed
+        @param _btcUSDFeed btc/usd feed
+        @param _usdtUSDFeed usdt/usd feed
     */
     constructor(
-        ICurveTriCryptoOracle _curveTriCryptoOracle,
-        AggregatorV3Interface _feed
+        AggregatorV3Interface _ethUSDFeed,
+        AggregatorV3Interface _btcUSDFeed,
+        AggregatorV3Interface _usdtUSDFeed,
+        ICurvePool _pool
     ) {
-        curveTriCryptoOracle = _curveTriCryptoOracle;
-        ethUsdPriceFeed = _feed;
+        ethUSDFeed = _ethUSDFeed;
+        btcUSDFeed = _btcUSDFeed;
+        usdtUSDFeed = _usdtUSDFeed;
+        pool = _pool;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -49,19 +66,51 @@ contract CurveTriCryptoOracle is IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address) external view returns (uint) {
-        return curveTriCryptoOracle.lp_price() * 1e8 / getEthPrice();
+        uint ethPrice = getPriceFromCL(ethUSDFeed);
+
+        return lp_price(
+            getPriceFromCL(btcUSDFeed) * 1e10,
+            ethPrice * 1e10,
+            getPriceFromCL(usdtUSDFeed) * 1e10
+        ) * 1e8 / ethPrice;
     }
 
-    function getEthPrice() internal view returns (uint) {
+    function getPriceFromCL(AggregatorV3Interface _feed) internal view returns (uint) {
         (, int answer,, uint updatedAt,) =
-            ethUsdPriceFeed.latestRoundData();
+            _feed.latestRoundData();
 
         if (block.timestamp - updatedAt >= 86400)
-            revert Errors.StalePrice(address(0), address(ethUsdPriceFeed));
+            revert Errors.StalePrice(address(0), address(_feed));
 
         if (answer <= 0)
-            revert Errors.NegativePrice(address(0), address(ethUsdPriceFeed));
+            revert Errors.NegativePrice(address(0), address(_feed));
 
         return uint(answer);
+    }
+
+    function lp_price(uint p1, uint p2, uint p3) internal view returns(uint) {
+        uint g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
+        uint a = ICurvePool(pool).A() * 1e18 / A0;
+        uint i = g ** 2 / 1e18 * a;
+        i = (i >= 1e34) ? cubicRoot(i) * DISCOUNT0 / 1e18
+            : cubicRoot(1e34) * DISCOUNT0 / 1e18;
+
+        uint vp = ICurvePool(pool).virtual_price();
+        uint maxPrice = 3 * vp * cubicRoot(p1 * p2 / 1e18 * p3) / 1e18;
+        maxPrice -= maxPrice * i / 1e18;
+
+        return maxPrice;
+    }
+
+    function cubicRoot(uint x) internal pure returns (uint) {
+        uint D = x / 1e18;
+        for (uint i; i < 255;) {
+            uint D_prev = D;
+            D = D * (2e18 + x / D * 1e18 / D * 1e18 / D) / (3e18);
+            uint diff = (D > D_prev) ? D - D_prev : D_prev - D;
+            if (diff < 2 || diff * 1e18 < D) return D;
+            unchecked { ++i; }
+        }
+        revert("Did Not Converge");
     }
 }
