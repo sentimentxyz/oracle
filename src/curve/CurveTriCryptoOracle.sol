@@ -22,10 +22,6 @@ contract CurveTriCryptoOracle is IOracle {
     /*                               STATE VARIABLES                              */
     /* -------------------------------------------------------------------------- */
 
-    uint256 public constant GAMMA0 = 28000000000000;
-    uint256 public constant A0 = 2 * 3**3 * 10000;
-    uint256 public constant DISCOUNT0 = 1087460000000000;
-
     /// @notice curve tricrypto pool
     ICurvePool public immutable pool;
 
@@ -89,17 +85,8 @@ contract CurveTriCryptoOracle is IOracle {
     }
 
     function lp_price(uint p1, uint p2, uint p3) internal view returns(uint) {
-        uint g = ICurvePool(pool).gamma() * 1e18 / GAMMA0;
-        uint a = ICurvePool(pool).A() * 1e18 / A0;
-        uint i = g ** 2 / 1e18 * a;
-        i = (i >= 1e34) ? cubicRoot(i) * DISCOUNT0 / 1e18
-            : cubicRoot(1e34) * DISCOUNT0 / 1e18;
-
-        uint vp = ICurvePool(pool).virtual_price();
-        uint maxPrice = 3 * vp * cubicRoot(p1 * p2 / 1e18 * p3) / 1e18;
-        maxPrice -= maxPrice * i / 1e18;
-
-        return maxPrice;
+        return 3 * ICurvePool(pool).virtual_price() *
+            cubicRoot(p1 * p2 / 1e18 * p3) / 1e18;
     }
 
     function cubicRoot(uint x) internal pure returns (uint) {
