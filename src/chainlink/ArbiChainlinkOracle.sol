@@ -16,10 +16,10 @@ contract ArbiChainlinkOracle is ChainlinkOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice L2 Sequencer feed
-    AggregatorV3Interface immutable sequencer;
+    AggregatorV3Interface public immutable sequencer;
 
     /// @notice L2 Sequencer grace period
-    uint256 private constant GRACE_PERIOD_TIME = 3600;
+    uint256 public constant GRACE_PERIOD_TIME = 3600;
 
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
@@ -44,18 +44,9 @@ contract ArbiChainlinkOracle is ChainlinkOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc ChainlinkOracle
-    function getPrice(address token) external view override returns (uint) {
+    function getPrice(address token) public view override returns (uint) {
         if (!isSequencerActive()) revert Errors.L2SequencerUnavailable();
-
-        (, int answer,,,) =
-            feed[token].latestRoundData();
-
-        if (answer < 0)
-            revert Errors.NegativePrice(token, address(feed[token]));
-
-        return (
-            (uint(answer)*1e18)/getEthPrice()
-        );
+        return super.getPrice(token);
     }
 
     /* -------------------------------------------------------------------------- */

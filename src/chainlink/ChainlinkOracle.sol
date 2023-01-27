@@ -17,7 +17,7 @@ contract ChainlinkOracle is Ownable, IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @notice ETH USD Chainlink price feed
-    AggregatorV3Interface immutable ethUsdPriceFeed;
+    AggregatorV3Interface public immutable ethUsdPriceFeed;
 
     /// @notice Mapping of token to token/usd chainlink price feed
     mapping(address => AggregatorV3Interface) public feed;
@@ -49,7 +49,7 @@ contract ChainlinkOracle is Ownable, IOracle {
 
     /// @inheritdoc IOracle
     /// @dev feed[token].latestRoundData should return price scaled by 8 decimals
-    function getPrice(address token) external view virtual returns (uint) {
+    function getPrice(address token) public view virtual returns (uint) {
         (, int answer,, uint updatedAt,) =
             feed[token].latestRoundData();
 
