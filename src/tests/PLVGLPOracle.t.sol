@@ -11,19 +11,13 @@ import {IGLPManager} from "../gmx/IGLPManager.sol";
 import {AggregatorV3Interface} from "../chainlink/AggregatorV3Interface.sol";
 
 interface IRewardRouter {
-    function mintAndStakeGlp(
-        address _token,
-        uint256 _amount,
-        uint256 _minUsdg,
-        uint256 _minGlp
-    ) external returns (uint256);
+    function mintAndStakeGlp(address _token, uint256 _amount, uint256 _minUsdg, uint256 _minGlp)
+        external
+        returns (uint256);
 
-    function unstakeAndRedeemGlp(
-        address _tokenOut,
-        uint256 _glpAmount,
-        uint256 _minOut,
-        address _receiver
-    ) external returns (uint256);
+    function unstakeAndRedeemGlp(address _tokenOut, uint256 _glpAmount, uint256 _minOut, address _receiver)
+        external
+        returns (uint256);
 }
 
 interface IWhitelist {
@@ -31,12 +25,11 @@ interface IWhitelist {
 }
 
 contract PLVGLPOracleTest is Test {
-
     OracleFacade oracle;
     PLVGLPOracle plvGLPOracle;
     GLPOracle glpOracle;
-    uint priceBefore;
-    uint priceAfter;
+    uint256 priceBefore;
+    uint256 priceAfter;
 
     address PLVGLP = 0x5326E71Ff593Ecc2CF7AcaE5Fe57582D6e74CFF1;
     address SGLP = 0x5402B5F40310bDED796c7D0F3FF6683f5C0cFfdf;
@@ -58,7 +51,8 @@ contract PLVGLPOracleTest is Test {
         plvGLPOracle = new PLVGLPOracle(
             oracle,
             SGLP,
-            depositor
+            depositor,
+            address(0)
         );
 
         glpOracle = new GLPOracle(
@@ -71,7 +65,7 @@ contract PLVGLPOracleTest is Test {
     }
 
     function testPrice() public view {
-        uint price = oracle.getPrice(PLVGLP);
+        uint256 price = oracle.getPrice(PLVGLP);
         console.log(price);
     }
 
@@ -103,14 +97,13 @@ contract PLVGLPOracleTest is Test {
 
         router.mintAndStakeGlp(address(WETH), amount, 0, 0);
 
-        IERC20(0x2F546AD4eDD93B956C8999Be404cdCAFde3E89AE).approve(address(depositor), type(uint).max);
+        IERC20(0x2F546AD4eDD93B956C8999Be404cdCAFde3E89AE).approve(address(depositor), type(uint256).max);
 
         depositor.depositAll();
     }
 
     function withdraw() internal {
-        IERC20(PLVGLP).approve(address(depositor), type(uint).max);
+        IERC20(PLVGLP).approve(address(depositor), type(uint256).max);
         depositor.redeemAll();
     }
-
 }

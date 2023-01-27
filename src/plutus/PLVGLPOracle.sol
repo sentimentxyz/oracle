@@ -1,4 +1,3 @@
-
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
@@ -24,18 +23,25 @@ contract PLVGLPOracle is IOracle {
     /// @notice Staked GLP
     address public immutable sGLP;
 
+    /// @notice account address
+    address public immutable account;
+
     /* -------------------------------------------------------------------------- */
     /*                                 CONSTRUCTOR                                */
     /* -------------------------------------------------------------------------- */
 
     /**
-        @notice Contract constructor
-        @param _oracleFacade address oracle facade
-    */
-    constructor(IOracle _oracleFacade, address _SGLP, IPLVGLPDepositor _vault) {
+     * @notice Contract constructor
+     *     @param _oracleFacade address oracle facade
+     *     @param _SGLP staked GLP address
+     *     @param _vault plvGLP depositor
+     *     @param _account account address, will be used to apply fees if necessary, default = address(0)
+     */
+    constructor(IOracle _oracleFacade, address _SGLP, IPLVGLPDepositor _vault, address _account) {
         oracleFacade = _oracleFacade;
         sGLP = _SGLP;
         vault = _vault;
+        account = _account;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -43,10 +49,8 @@ contract PLVGLPOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address) external view returns (uint) {
-        (,, uint assets) = vault.previewRedeem(address(0), 1e18);
-        return assets.mulWadDown(
-            oracleFacade.getPrice(sGLP)
-        );
+    function getPrice(address) external view returns (uint256) {
+        (,, uint256 assets) = vault.previewRedeem(account, 1e18);
+        return assets.mulWadDown(oracleFacade.getPrice(sGLP));
     }
 }
