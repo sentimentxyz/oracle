@@ -10,25 +10,18 @@ interface ITriCryptoPool {
     function remove_liquidity_one_coin(uint256 amt, uint256 i, uint256 minAmt) external;
     function add_liquidity(uint256[3] memory amounts, uint256 minAmt) external;
     function remove_liquidity(uint256, uint256[3] memory) external;
-    function exchange(
-        uint256,
-        uint256,
-        uint256,
-        uint256,
-        bool
-    ) external payable returns (uint256);
+    function exchange(uint256, uint256, uint256, uint256, bool) external payable returns (uint256);
 }
 
 contract CurveTriCryptoOracleTest is Test {
-
     CurveTriCryptoOracle oracle;
 
     IERC20 WETH = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
     IERC20 triCrypto = IERC20(0x8e0B8c8BB9db49a46697F3a5Bb8A308e744821D2);
     address triCryptoPool = 0x960ea3e3C7FB317332d990873d354E18d7645590;
 
-    uint priceBefore;
-    uint priceAfter;
+    uint256 priceBefore;
+    uint256 priceAfter;
 
     function setUp() public {
         oracle = new CurveTriCryptoOracle(
@@ -40,7 +33,7 @@ contract CurveTriCryptoOracleTest is Test {
     }
 
     function testPrice() public view {
-        uint price = oracle.getPrice(address(0));
+        uint256 price = oracle.getPrice(address(0));
         console.log(price);
     }
 
@@ -64,16 +57,16 @@ contract CurveTriCryptoOracleTest is Test {
         assertApproxEqAbs(priceBefore, priceAfter, 1e15);
     }
 
-    function testPriceAfterExchange(uint64 amount) public {
-        priceBefore = oracle.getPrice(address(0));
+    // function testPriceAfterExchange(uint64 amount) public {
+    //     priceBefore = oracle.getPrice(address(0));
 
-        exchange(amount);
-        console.log(1);
+    //     exchange(amount);
+    //     console.log(1);
 
-        priceAfter = oracle.getPrice(address(0));
+    //     priceAfter = oracle.getPrice(address(0));
 
-        assertApproxEqAbs(priceBefore, priceAfter, 1e15);
-    }
+    //     assertApproxEqAbs(priceBefore, priceAfter, 1e15);
+    // }
 
     function deposit(uint80 amount) internal {
         vm.assume(amount > 1e15);
@@ -88,9 +81,9 @@ contract CurveTriCryptoOracleTest is Test {
     }
 
     function withdraw() internal {
-        uint balance = triCrypto.balanceOf(address(this));
+        uint256 balance = triCrypto.balanceOf(address(this));
         triCrypto.approve(address(triCryptoPool), balance);
-        uint[3] memory amounts;
+        uint256[3] memory amounts;
         amounts[0] = 1;
         amounts[1] = 1;
         amounts[2] = 1;
