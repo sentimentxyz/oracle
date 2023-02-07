@@ -8,27 +8,20 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {AggregatorV3Interface} from "../chainlink/AggregatorV3Interface.sol";
 
 interface IRewardRouter {
-    function mintAndStakeGlp(
-        address _token,
-        uint256 _amount,
-        uint256 _minUsdg,
-        uint256 _minGlp
-    ) external returns (uint256);
+    function mintAndStakeGlp(address _token, uint256 _amount, uint256 _minUsdg, uint256 _minGlp)
+        external
+        returns (uint256);
 
-    function unstakeAndRedeemGlp(
-        address _tokenOut,
-        uint256 _glpAmount,
-        uint256 _minOut,
-        address _receiver
-    ) external returns (uint256);
+    function unstakeAndRedeemGlp(address _tokenOut, uint256 _glpAmount, uint256 _minOut, address _receiver)
+        external
+        returns (uint256);
 }
 
 contract GLPOracleTest is Test {
-
     GLPOracle oracle;
 
-    uint priceBefore;
-    uint priceAfter;
+    uint256 priceBefore;
+    uint256 priceAfter;
 
     IRewardRouter router = IRewardRouter(0xB95DB5B167D75e6d04227CfFFA61069348d271F5);
     IERC20 WETH = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1);
@@ -37,12 +30,13 @@ contract GLPOracleTest is Test {
     function setUp() public {
         oracle = new GLPOracle(
             IGLPManager(0x3963FfC9dff443c2A94f21b129D429891E32ec18),
-            AggregatorV3Interface(0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612)
+            AggregatorV3Interface(0x639Fe6ab55C921f74e7fac1ee960C0B6293ba612),
+            AggregatorV3Interface(0xFdB631F5EE196F0ed6FAa767959853A9F217697D)
         );
     }
 
     function testPrice() public view {
-        uint price = oracle.getPrice(address(0));
+        uint256 price = oracle.getPrice(address(0));
         console.log(price);
     }
 
@@ -76,7 +70,16 @@ contract GLPOracleTest is Test {
     }
 
     function withdraw() internal {
-        uint balance = sGLP.balanceOf(address(this));
+        uint256 balance = sGLP.balanceOf(address(this));
         router.unstakeAndRedeemGlp(address(WETH), balance, 1, address(this));
+    }
+
+    function testFailSequencerDown() public {
+        vm.mockCall(
+            0xFdB631F5EE196F0ed6FAa767959853A9F217697D,
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            abi.encode(0, 1, 0, block.timestamp, 0)
+        );
+        oracle.getPrice(address(0));
     }
 }
