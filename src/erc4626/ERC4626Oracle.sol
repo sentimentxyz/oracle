@@ -33,7 +33,7 @@ contract ERC4626Oracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address vault) external view returns (uint) {
+    function getPrice(address vault) external returns (uint) {
         address asset = IERC4626(vault).asset();
         return IERC4626(vault).previewRedeem(
             10 ** IERC4626(vault).decimals()

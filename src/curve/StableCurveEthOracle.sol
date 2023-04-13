@@ -55,7 +55,7 @@ contract StableCurveEthOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         ICurvePool pool = ICurveLP(token).minter();
 
         address coin;

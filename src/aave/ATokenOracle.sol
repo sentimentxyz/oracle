@@ -34,7 +34,7 @@ contract ATokenOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address aToken) external view returns (uint) {
+    function getPrice(address aToken) external returns (uint) {
         return oracle.getPrice(IAToken(aToken).UNDERLYING_ASSET_ADDRESS());
     }
 }

@@ -3,17 +3,16 @@ pragma solidity ^0.8.17;
 
 import {IOracle} from "../core/IOracle.sol";
 import {IERC20} from "../utils/IERC20.sol";
+import {FixedPointMathLib} from "solmate/utils/FixedPointMathLib.sol";
 import {IVault} from "./IVault.sol";
 import {IPool} from "./IPool.sol";
-import {FixedPoint} from "./library/FixedPoint.sol";
 
 /**
-    @title Balancer LP Oracle for weighted pool
-    @notice Oracle for weighted balancer pool tokens
-    https://dev.balancer.fi/references/lp-tokens/valuing
+    @title Balancer LP Oracle for stable pool
+    @notice Oracle for stable balancer pool tokens
 */
-contract WeightedBalancerLPOracle is IOracle {
-    using FixedPoint for uint;
+contract StableBalancerLPOracleV2 {
+    using FixedPointMathLib for uint;
 
     /* -------------------------------------------------------------------------- */
     /*                              STORAGE VARIABLES                             */
@@ -39,30 +38,23 @@ contract WeightedBalancerLPOracle is IOracle {
         oracleFacade = _oracle;
     }
 
-    /// @inheritdoc IOracle
     function getPrice(address token) external returns (uint) {
+        checkReentrancy();
         (
             address[] memory poolTokens,
-            uint256[] memory balances,
+            ,
         ) = vault.getPoolTokens(IPool(token).getPoolId());
 
-        uint256[] memory weights = IPool(token).getNormalizedWeights();
-
-        uint length = weights.length;
-        uint temp = 1e18;
-        uint invariant = 1e18;
-        for(uint i; i < length; i++) {
-            temp = temp.mulDown(
-                (oracleFacade.getPrice(poolTokens[i]).divDown(weights[i]))
-                .powDown(weights[i])
-            );
-            invariant = invariant.mulDown(
-                (balances[i] * 10 ** (18 - IERC20(poolTokens[i]).decimals()))
-                .powDown(weights[i])
-            );
+        uint length = poolTokens.length;
+        uint minPrice = oracleFacade.getPrice(poolTokens[0]);
+        for(uint i = 1; i < length; i++) {
+            uint price = oracleFacade.getPrice(poolTokens[i]);
+            minPrice = (price < minPrice) ? price : minPrice;
         }
-        return invariant
-            .mulDown(temp)
-            .divDown(IPool(token).totalSupply());
+        return minPrice.mulWadDown(IPool(token).getRate());
+    }
+
+    function checkReentrancy() internal {
+        vault.manageUserBalance(new IVault.UserBalanceOp[](0));
     }
 }

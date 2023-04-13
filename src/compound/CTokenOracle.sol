@@ -41,7 +41,7 @@ contract CTokenOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         return (token == cETHER) ?
             getCEtherPrice() :
             getCErc20Price(ICToken(token), ICToken(token).underlying());
@@ -63,7 +63,7 @@ contract CTokenOracle is IOracle {
         return ICToken(cETHER).exchangeRateStored().mulWadDown(1e8);
     }
 
-    function getCErc20Price(ICToken cToken, address underlying) internal view returns (uint) {
+    function getCErc20Price(ICToken cToken, address underlying) internal returns (uint) {
         /*
             cToken Exchange rates are scaled by 10^(18 - 8 + underlying token decimals) so to scale
             the exchange rate to 18 decimals we must multiply it by 1e8 and then divide it by the

@@ -39,7 +39,7 @@ contract StableBalancerLPOracle is IOracle {
     }
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         (
             address[] memory poolTokens,
             ,

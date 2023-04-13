@@ -12,7 +12,7 @@ import {FixedPoint} from "./library/FixedPoint.sol";
     @notice Oracle for weighted balancer pool tokens
     https://dev.balancer.fi/references/lp-tokens/valuing
 */
-contract WeightedBalancerLPOracle is IOracle {
+contract WeightedBalancerLPOracleV2 {
     using FixedPoint for uint;
 
     /* -------------------------------------------------------------------------- */
@@ -39,8 +39,8 @@ contract WeightedBalancerLPOracle is IOracle {
         oracleFacade = _oracle;
     }
 
-    /// @inheritdoc IOracle
     function getPrice(address token) external returns (uint) {
+        checkReentrancy();
         (
             address[] memory poolTokens,
             uint256[] memory balances,
@@ -64,5 +64,9 @@ contract WeightedBalancerLPOracle is IOracle {
         return invariant
             .mulDown(temp)
             .divDown(IPool(token).totalSupply());
+    }
+
+    function checkReentrancy() internal {
+        vault.manageUserBalance(new IVault.UserBalanceOp[](0));
     }
 }

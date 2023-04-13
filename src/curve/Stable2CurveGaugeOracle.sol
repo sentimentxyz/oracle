@@ -37,7 +37,7 @@ contract Stable2CurveGaugeOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         return oracleFacade.getPrice(IGauge(token).lp_token());
     }
 }
