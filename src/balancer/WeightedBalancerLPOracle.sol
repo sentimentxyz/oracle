@@ -41,6 +41,7 @@ contract WeightedBalancerLPOracle is IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external returns (uint) {
+        checkReentrancy();
         (
             address[] memory poolTokens,
             uint256[] memory balances,
@@ -64,5 +65,9 @@ contract WeightedBalancerLPOracle is IOracle {
         return invariant
             .mulDown(temp)
             .divDown(IPool(token).totalSupply());
+    }
+
+    function checkReentrancy() internal {
+        vault.manageUserBalance(new IVault.UserBalanceOp[](0));
     }
 }

@@ -40,6 +40,7 @@ contract ComposableStableBalancerLPOracle is IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external returns (uint) {
+        checkReentrancy();
         (
             address[] memory poolTokens,
             ,
@@ -53,5 +54,9 @@ contract ComposableStableBalancerLPOracle is IOracle {
             minPrice = (price < minPrice) ? price : minPrice;
         }
         return minPrice.mulWadDown(IPool(token).getRate());
+    }
+
+    function checkReentrancy() internal {
+        vault.manageUserBalance(new IVault.UserBalanceOp[](0));
     }
 }
