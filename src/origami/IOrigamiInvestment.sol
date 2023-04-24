@@ -18,4 +18,33 @@ interface IOrigamiInvestment {
      * then this may be 0x0
      */
     function baseToken() external view returns (address);
+
+    function reserveToken() external view returns (address);
+
+    function exitQuote(uint256 investmentAmount, address toToken, uint256 maxSlippageBps, uint256 deadline)
+        external
+        view
+        returns (ExitQuoteData memory quoteData, uint256[] memory exitFeeBps);
+
+    /**
+     * @notice Quote data required when exoomg this investment.
+     */
+    struct ExitQuoteData {
+        /// @notice The amount of this investment to sell
+        uint256 investmentTokenAmount;
+        /// @notice The token to sell into, which must be one of `acceptedExitTokens()`
+        address toToken;
+        /// @notice The maximum acceptable slippage of the `expectedToTokenAmount`
+        uint256 maxSlippageBps;
+        /// @notice The maximum deadline to execute the transaction.
+        uint256 deadline;
+        /// @notice The expected amount of `toToken` to receive in return
+        /// @dev Note slippage is applied to this when calling `invest()`
+        uint256 expectedToTokenAmount;
+        /// @notice The minimum amount of `toToken` to receive after
+        /// slippage has been applied.
+        uint256 minToTokenAmount;
+        /// @notice Any extra quote parameters required by the underlying investment
+        bytes underlyingInvestmentQuoteData;
+    }
 }

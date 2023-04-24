@@ -36,9 +36,28 @@ contract OAssetOracle is IOracle {
 
     /// @inheritdoc IOracle
     function getPrice(address token) external override returns (uint256) {
-        if (token == oGLP) return oracleFacade.getPrice(sGLP);
-        if (token == oGMX) return oracleFacade.getPrice(GMX);
+        address baseToken = getBaseToken(token);
 
-        return oracleFacade.getPrice(IOrigamiInvestment(token).baseToken());
+        (IOrigamiInvestment.ExitQuoteData memory data, uint256[] memory fees) =
+            IOrigamiInvestment(token).exitQuote(10 ** IERC20(token).decimals(), baseToken, 0, block.timestamp);
+
+        uint256 expectedToTokenAmount = data.expectedToTokenAmount;
+
+        for (uint256 i = 0; i < fees.length; i++) {
+            expectedToTokenAmount = applyFees(expectedToTokenAmount, fees[i]);
+        }
+
+        return expectedToTokenAmount.mulDivDown(oracleFacade.getPrice(baseToken), 10 ** IERC20(baseToken).decimals());
+    }
+
+    function getBaseToken(address token) internal view returns (address) {
+        if (token == oGLP) return sGLP;
+        if (token == oGMX) return GMX;
+
+        return IOrigamiInvestment(token).baseToken();
+    }
+
+    function applyFees(uint256 amount, uint256 fee) internal pure returns (uint256) {
+        return amount * (10000 - fee) / 10000;
     }
 }
