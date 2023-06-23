@@ -43,7 +43,7 @@ contract PLVGLPOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address) external view returns (uint) {
+    function getPrice(address) external returns (uint) {
         (,, uint assets) = vault.previewRedeem(address(0), 1e18);
         return assets.mulWadDown(
             oracleFacade.getPrice(sGLP)

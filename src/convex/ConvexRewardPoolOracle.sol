@@ -41,7 +41,7 @@ contract ConvexRewardPoolOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         return oracleFacade.getPrice(
             IGauge(IRewardPool(token).curveGauge()
         ).lp_token());

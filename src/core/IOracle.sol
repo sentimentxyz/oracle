@@ -8,5 +8,5 @@ interface IOracle {
         @param token Address of token
         @return price Price of token in terms of ETH
     */
-    function getPrice(address token) external view returns (uint);
+    function getPrice(address token) external returns (uint);
 }

@@ -40,7 +40,7 @@ contract Stable2CurveOracle is IOracle {
     /* -------------------------------------------------------------------------- */
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         uint price0 = oracleFacade.getPrice(ICurvePool(token).coins(0));
         uint price1 = oracleFacade.getPrice(ICurvePool(token).coins(1));
         return ((price0 < price1) ? price0 : price1).mulWadDown(

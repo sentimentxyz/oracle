@@ -39,7 +39,8 @@ contract StableBalancerLPOracle is IOracle {
     }
 
     /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
+        checkReentrancy();
         (
             address[] memory poolTokens,
             ,
@@ -52,5 +53,9 @@ contract StableBalancerLPOracle is IOracle {
             minPrice = (price < minPrice) ? price : minPrice;
         }
         return minPrice.mulWadDown(IPool(token).getRate());
+    }
+
+    function checkReentrancy() internal {
+        vault.manageUserBalance(new IVault.UserBalanceOp[](0));
     }
 }

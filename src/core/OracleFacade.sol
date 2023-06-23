@@ -36,8 +36,7 @@ contract OracleFacade is Ownable, IOracle {
     /*                              PUBLIC FUNCTIONS                              */
     /* -------------------------------------------------------------------------- */
 
-    /// @inheritdoc IOracle
-    function getPrice(address token) external view returns (uint) {
+    function getPrice(address token) external returns (uint) {
         if(address(oracle[token]) == address(0)) revert Errors.PriceUnavailable();
         return oracle[token].getPrice(token);
     }
